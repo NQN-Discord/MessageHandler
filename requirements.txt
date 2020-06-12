@@ -1,0 +1,4 @@
+aio-pika
+PyYAML
+aiopg
+git+git://github.com/NQN-Discord/rabbit_helper.git

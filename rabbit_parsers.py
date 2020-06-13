@@ -17,7 +17,7 @@ class MessageRabbit(Rabbit):
             if tokens == {"@someone"}:
                 await self.send_at_someone(data)
             elif tokens == {"prefix"}:
-                await self.send_command(data)
+                await self.send_command(data, *message_types[0][1:])
             else:
                 await self.send_webhook(data, message_types)
                 if "rendered_emote" in tokens:
@@ -32,8 +32,12 @@ class MessageRabbit(Rabbit):
         }
 
     @Rabbit.sender("COMMAND", 0)
-    async def send_command(self, data):
-        return data
+    async def send_command(self, data, prefix, unprefixed_content):
+        return {
+            "message": data,
+            "server_prefix": prefix,
+            "unprefixed_content": unprefixed_content
+        }
 
     @Rabbit.sender("WEBHOOK", 0)
     async def send_webhook(self, data, message_types):

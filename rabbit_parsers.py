@@ -24,15 +24,17 @@ class MessageRabbit(Rabbit):
                     await self.send_rendered_emote(message_types)
 
     @Rabbit.sender("AT_SOMEONE", 0)
-    async def send_at_someone(self, data):
+    def send_at_someone(self, data):
         return {
             "message_id": data["id"],
             "channel_id": data["channel_id"],
-            "guild_id": data["guild_id"]
+            "guild_id": data["guild_id"],
+            "author": data["author"],
+            "nickname": data["member"].get("nick")
         }
 
     @Rabbit.sender("COMMAND", 0)
-    async def send_command(self, data, prefix, unprefixed_content):
+    def send_command(self, data, prefix, unprefixed_content):
         return {
             "message": data,
             "server_prefix": prefix,
@@ -40,12 +42,12 @@ class MessageRabbit(Rabbit):
         }
 
     @Rabbit.sender("WEBHOOK", 0)
-    async def send_webhook(self, data, message_types):
+    def send_webhook(self, data, message_types):
         return {
             "message": data,
             "message_types": message_types
         }
 
     @Rabbit.sender("RENDERED_EMOTE", 0)
-    async def send_rendered_emote(self, message_types):
+    def send_rendered_emote(self, message_types):
         return [token for token_type, token in message_types if token_type == token]

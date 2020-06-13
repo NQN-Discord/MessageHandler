@@ -10,7 +10,7 @@ colon_regex = re.compile(
 )
 
 
-def message_type(content, prefix: str = "!") -> List[List[str]]:
+def get_message_types(content, prefix: str = "!") -> List[List[str]]:
     if not content:
         return []
     if content.startswith(prefix):
@@ -37,7 +37,7 @@ def run_profiling(messages: List[str]):
     #  !prefix
     #  Any message with a colon for further processing
     for message in messages:
-        for match, *data in message_type(message):
+        for match, *data in get_message_types(message):
             message_types[match] += 1
     print(message_types, sum(i for i in message_types.values()), len(messages))
 

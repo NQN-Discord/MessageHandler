@@ -3,8 +3,6 @@ from message_regex import get_message_types
 
 
 class MessageRabbit(Rabbit):
-    EXCHANGE = "GUILD_STATE"
-
     def __init__(self, config):
         super(MessageRabbit, self).__init__(config["rabbit_uri"])
         self.postgres_uri = config["postgres_uri"]

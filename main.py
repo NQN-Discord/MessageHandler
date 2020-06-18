@@ -1,10 +1,15 @@
 import yaml
 import asyncio
 from rabbit_parsers import MessageRabbit
+from prefixes import Prefixes
+from aiopg import connect
 
 
 async def main(config):
-    rabbit = MessageRabbit(config)
+    prefixes = Prefixes()
+    rabbit = MessageRabbit(config, prefixes)
+    async with connect(config["postgres_uri"]) as conn:
+        await prefixes.init(conn)
     await rabbit.connect()
     print("Connected")
     await rabbit.consume()

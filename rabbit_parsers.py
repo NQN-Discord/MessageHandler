@@ -3,13 +3,12 @@ from message_regex import get_message_types
 
 
 class MessageRabbit(Rabbit):
-    def __init__(self, config):
+    def __init__(self, config, prefixes):
         super(MessageRabbit, self).__init__(config["rabbit_uri"])
-        self.postgres_uri = config["postgres_uri"]
-        self.messages = []
+        self.prefixes = prefixes
 
     async def parse_message_create_raw_0(self, data):
-        message_types = get_message_types(data["content"])
+        message_types = get_message_types(data["content"], prefix=self.prefixes[data["guild_id"]])
         if message_types:
             tokens = set(token for token, *data in message_types)
             if tokens == {"@someone"}:
@@ -39,7 +38,7 @@ class MessageRabbit(Rabbit):
             "unprefixed_content": unprefixed_content
         }
 
-    @Rabbit.sender("WEBHOOK", 0)
+    @Rabbit.sender("RENDER_MESSAGE", 0)
     def send_webhook(self, data, message_types):
         return {
             "message": data,

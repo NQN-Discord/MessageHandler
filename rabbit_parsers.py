@@ -8,7 +8,7 @@ class MessageRabbit(Rabbit):
         self.prefixes = prefixes
 
     async def parse_message_create_raw_0(self, data):
-        message_types = get_message_types(data["content"], prefix=self.prefixes[data["guild_id"]])
+        message_types = get_message_types(data["content"], prefix=self.prefixes[data.get("guild_id")])
         if message_types:
             tokens = set(token for token, *data in message_types)
             if tokens == {"@someone"}:
@@ -19,6 +19,9 @@ class MessageRabbit(Rabbit):
                 await self.send_webhook(data, message_types)
                 if "rendered_emote" in tokens:
                     await self.send_rendered_emote(message_types)
+
+    async def parse_guild_prefix_set_0(self, data):
+        self.prefixes[str(data["guild_id"])] = data["prefix"]
 
     @Rabbit.sender("AT_SOMEONE", 0)
     def send_at_someone(self, data):

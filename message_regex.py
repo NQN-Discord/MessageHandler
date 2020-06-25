@@ -15,8 +15,8 @@ def get_message_types(content, prefix: str = "!") -> List[List[str]]:
         return []
     if content.startswith(prefix):
         return [["prefix", prefix, content.replace(prefix, "", 1)]]
-    elif content[:21] in {"<@559426966151757824>", "<@561541673750888481>"}:
-        return [["prefix", prefix, content[21:]]]
+    elif content[:22] in {"<@!559426966151757824>", "<@!561541673750888481>"}:
+        return [["prefix", prefix, content[22:].strip(" ")]]
     elif ":" in content:
         return [[m.lastgroup, m.group()] for m in colon_regex.finditer(content)]
     elif content == "@someone":

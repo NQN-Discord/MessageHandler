@@ -4,6 +4,12 @@ from rabbit_parsers import MessageRabbit
 from prefixes import Prefixes
 from aiopg import connect
 import sentry_sdk
+from logging import basicConfig, INFO, getLogger
+from sys import stderr
+
+
+basicConfig(stream=stderr, level=INFO, format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+log = getLogger(__name__)
 
 
 async def main(config):
@@ -14,7 +20,7 @@ async def main(config):
     async with connect(config["postgres_uri"]) as conn:
         await prefixes.init(conn)
     await rabbit.connect()
-    print("Connected")
+    log.info("Connected")
     await rabbit.consume()
 
 

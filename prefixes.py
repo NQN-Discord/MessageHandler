@@ -17,3 +17,6 @@ class Prefixes:
 
     def __getitem__(self, guild_id: str):
         return self.prefixes.get(guild_id, "!")
+
+    def __delitem__(self, guild_id: str):
+        self.prefixes.pop(guild_id, None)

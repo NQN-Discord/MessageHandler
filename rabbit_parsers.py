@@ -23,6 +23,9 @@ class MessageRabbit(Rabbit):
     async def parse_guild_prefix_set_0(self, data):
         self.prefixes[str(data["guild_id"])] = data["prefix"]
 
+    async def parse_guild_delete_0(self, guild):
+        del self.prefixes[guild["id"]]
+
     @Rabbit.sender("AT_SOMEONE", 0)
     def send_at_someone(self, data):
         return {

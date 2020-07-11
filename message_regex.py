@@ -5,8 +5,8 @@ colon_regex = re.compile(
     r"(?P<rendered_emote><a?:[a-zA-Z0-9_]+:\d+>)|"
     r"(?P<unrendered_emote>:(?:[a-zA-Z0-9_]+-)?[a-zA-Z0-9_]+:(?!\d+>))|"
     r"(?P<message_link>(?:https?://(?:[a-z]+\.)?)?discord(?:app)?\.com/channels/\d+/\d+/\d+)|"
-    r"(?P<sticker>(?:[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+:)|(?:<a?:[a-zA-Z0-9_]+_sticker_[a-zA-Z0-9_]+:\d+>))|"
-    r"(?P<masked_url>\[.*\]\(https?://[a-zA-Z0-9:.-_]{1,256}\.[a-zA-Z0-9]{1,6}\b[-a-zA-Z0-9@:%_+.~#?&/=]*\))"
+    r"(?P<sticker>:[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+:)|"
+    r"(?P<masked_url>\[.*\]\(<?https?://[a-zA-Z0-9:.-_]{1,256}\.[a-zA-Z0-9]{1,6}\b[-a-zA-Z0-9@:%_+.~#?&/=]*>?\))"
 )
 
 

@@ -11,14 +11,18 @@ class MessageRabbit(Rabbit):
         message_types = get_message_types(data["content"], prefix=self.prefixes[data.get("guild_id")])
         if message_types:
             tokens = set(token for token, *data in message_types)
-            if tokens == {"@someone"}:
-                await self.send_at_someone(data)
-            elif tokens == {"prefix"}:
-                await self.send_command(data, *message_types[0][1:])
-            else:
-                await self.send_webhook(data, message_types)
-                if "rendered_emote" in tokens:
-                    await self.send_rendered_emote(message_types)
+
+            is_bot = data["author"].get("bot")
+            if not is_bot:
+                if tokens == {"@someone"}:
+                    await self.send_at_someone(data)
+                elif tokens == {"prefix"}:
+                    await self.send_command(data, *message_types[0][1:])
+                else:
+                    await self.send_webhook(data, message_types)
+            # Allow rendered emote events to be picked up regardless of if they were sent by bots
+            if "rendered_emote" in tokens:
+                await self.send_rendered_emote(data, message_types)
 
     async def parse_guild_prefix_set_0(self, data):
         self.prefixes[str(data["guild_id"])] = data["prefix"]
@@ -51,6 +55,10 @@ class MessageRabbit(Rabbit):
             "message_types": message_types
         }
 
-    @Rabbit.sender("RENDERED_EMOTE", 0)
-    def send_rendered_emote(self, message_types):
-        return [token for token_type, token in message_types if token_type == token]
+    @Rabbit.sender("RENDERED_EMOTE", 1)
+    def send_rendered_emote(self, data, message_types):
+        return {
+            "tokens": [token for token_type, token in message_types if token_type == "rendered_emote"],
+            "guild_id": data["guild_id"],
+            "channel_id": data["channel_id"]
+        }

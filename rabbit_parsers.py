@@ -15,11 +15,13 @@ class MessageRabbit(Rabbit):
             is_bot = data["author"].get("bot")
             if not is_bot:
                 if tokens == {"@someone"}:
-                    await self.send_at_someone(data)
+                    if "guild_id" in data:
+                        await self.send_at_someone(data)
                 elif tokens == {"prefix"}:
                     await self.send_command(data, *message_types[0][1:])
                 else:
-                    await self.send_webhook(data, message_types)
+                    if "guild_id" in data:
+                        await self.send_webhook(data, message_types)
             # Allow rendered emote events to be picked up regardless of if they were sent by bots
             if "rendered_emote" in tokens and "guild_id" in data:
                 await self.send_rendered_emote(data, message_types)

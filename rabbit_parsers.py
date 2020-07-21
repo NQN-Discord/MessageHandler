@@ -21,7 +21,7 @@ class MessageRabbit(Rabbit):
                 else:
                     await self.send_webhook(data, message_types)
             # Allow rendered emote events to be picked up regardless of if they were sent by bots
-            if "rendered_emote" in tokens:
+            if "rendered_emote" in tokens and "guild_id" in data:
                 await self.send_rendered_emote(data, message_types)
 
     async def parse_guild_prefix_set_0(self, data):

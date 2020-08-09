@@ -11,10 +11,12 @@ class RateLimiter:
         self.overrides = overrides
 
     async def is_rate_limited(self, key: str) -> bool:
-        count = await self.redis.incr(f"{self.label}.{key}")
+        rate, limit = self.overrides.get(key, self.limit)
+        key = f"{self.label}.{rate}.{key}"
+        count = await self.redis.incr(key)
         if count == 1:
-            await self.redis.expire(f"{self.label}.{key}", self.overrides.get(key, self.limit)[1])
-        return count >= self.overrides.get(key, self.limit)[0]
+            await self.redis.expire(key, rate)
+        return count >= limit
 
 
 class MessageRabbit(Rabbit):

@@ -1,22 +1,28 @@
 from typing import Dict, Tuple
+from asyncio import ensure_future
+from aiohttp import ClientSession
+from humanfriendly import format_timespan
 from rabbit_helper import Rabbit
 from message_regex import get_message_types
 
 
 class RateLimiter:
-    def __init__(self, redis, label: str, rate: int, time: int, overrides: Dict[str, Tuple[int, int]]):
+    def __init__(self, redis, label: str, limit: int, time: int, overrides: Dict[str, Tuple[int, int]]):
         self.redis = redis
         self.label = label
-        self.limit = rate, time
+        self.limit = limit, time
         self.overrides = overrides
 
-    async def is_rate_limited(self, key: str) -> bool:
-        rate, limit = self.overrides.get(key, self.limit)
-        key = f"{self.label}.{rate}.{key}"
+    async def is_rate_limited(self, key: str) -> int:
+        limit, time = self.overrides.get(key, self.limit)
+        key = f"{self.label}.{time}.{key}"
         count = await self.redis.incr(key)
         if count == 1:
-            await self.redis.expire(key, rate)
-        return count >= limit
+            await self.redis.expire(key, time)
+        return max(count, limit) - limit
+
+    def __str__(self):
+        return f"{self.label} ({self.limit[0]}/{format_timespan(self.limit[1])})"
 
 
 class MessageRabbit(Rabbit):
@@ -24,6 +30,7 @@ class MessageRabbit(Rabbit):
 
     def __init__(self, config, redis, prefixes):
         super(MessageRabbit, self).__init__(config["rabbit_uri"])
+        self.webhook_url = config.get("ratelimit_webhook")
         self.prefixes = prefixes
         # 300 every half hour
         self.someone_rate_limiter = RateLimiter(redis, "someone_rate_limit", 300, 1800, {})
@@ -58,9 +65,17 @@ class MessageRabbit(Rabbit):
     async def parse_guild_delete_0(self, guild):
         del self.prefixes[guild["id"]]
 
-    def is_rate_limited(self, data, limiter: RateLimiter):
+    async def is_rate_limited(self, data, limiter: RateLimiter) -> bool:
         key = data.get("guild_id") or data["channel_id"]
-        return limiter.is_rate_limited(key)
+        over_limit = await limiter.is_rate_limited(key)
+        if over_limit:
+            ensure_future(self.post_webhook(key, limiter, over_limit))
+        return bool(over_limit)
+
+    async def post_webhook(self, key: str, limiter: RateLimiter, over_limit: int):
+        if self.webhook_url and over_limit % 10 == 1:
+            async with ClientSession() as session:
+                await session.post(self.webhook_url, json={"content": f"{limiter} ({key}), {over_limit} over limit"})
 
     @Rabbit.sender("AT_SOMEONE", 0)
     def send_at_someone(self, data):

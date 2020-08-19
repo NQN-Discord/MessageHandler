@@ -6,7 +6,7 @@ from aiopg import connect
 import sentry_sdk
 from logging import basicConfig, INFO, getLogger
 from sys import stderr
-
+import aioredis
 
 basicConfig(stream=stderr, level=INFO, format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 log = getLogger(__name__)
@@ -15,8 +15,9 @@ log = getLogger(__name__)
 async def main(config):
     if config.get("sentry"):
         sentry_sdk.init(config["sentry"])
+    redis = await aioredis.create_redis_pool(config["redis_uri"])
     prefixes = Prefixes()
-    rabbit = MessageRabbit(config, prefixes)
+    rabbit = MessageRabbit(config, redis, prefixes)
     async with connect(config["postgres_uri"]) as conn:
         await prefixes.init(conn)
     await rabbit.connect()

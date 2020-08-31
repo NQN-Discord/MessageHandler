@@ -73,7 +73,7 @@ class MessageRabbit(Rabbit):
         return bool(over_limit)
 
     async def post_webhook(self, key: str, limiter: RateLimiter, over_limit: int):
-        if self.webhook_url and over_limit % 10 == 1:
+        if self.webhook_url and (over_limit - 1) & over_limit == 0 and (over_limit > 60 or over_limit == 1):
             async with ClientSession() as session:
                 await session.post(self.webhook_url, json={"content": f"{limiter} ({key}), {over_limit} over limit"})
 

@@ -14,7 +14,7 @@ def get_message_types(content, prefix: str = "!") -> List[List[str]]:
     if not content:
         return []
     if content.startswith(prefix):
-        return [["prefix", prefix, content.replace(prefix, "", 1)]]
+        return [["prefix", prefix, content.replace(prefix, "", 1).lstrip(" ")]]
     elif content[:21] in {
         "<@!559426966151757824", "<@559426966151757824>",
         "<@!561541673750888481", "<@561541673750888481>",

@@ -1,5 +1,6 @@
 from typing import List
 import re
+from sys import intern
 
 colon_regex = re.compile(
     r"(?P<rendered_emote><a?:[a-zA-Z0-9_]+:\d+>)|"
@@ -22,7 +23,7 @@ def get_message_types(content, prefix: str = "!") -> List[List[str]]:
     }:
         return [["prefix", prefix, content[21:].lstrip("> ")]]
     elif ":" in content:
-        return [[m.lastgroup, m.group()] for m in colon_regex.finditer(content)]
+        return [[intern(m.lastgroup), m.group()] for m in colon_regex.finditer(content)]
     elif content == "@someone":
         return [["@someone"]]
     return []

@@ -3,7 +3,7 @@ import re
 from sys import intern
 
 colon_regex = re.compile(
-    r"(?P<persona>^[a-zA-Z0-9_-]{1,80}(?=:))|"
+    r"(?P<persona>^(?!http)[a-zA-Z0-9_-]{1,80}(?=:))|"
     r"(?P<rendered_emote><a?:[a-zA-Z0-9_]+:\d+>)|"
     r"(?P<unrendered_emote>:(?:[a-zA-Z0-9_]+-)?[a-zA-Z0-9_]+:(?!\d+>))|"
     r"(?P<message_link>\b(?:https?://(?:[a-z]+\.)?)?discord(?:app)?\.com/channels/\d+/\d+/\d+\b(?!>))|"

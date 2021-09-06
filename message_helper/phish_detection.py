@@ -1,21 +1,12 @@
 import re
 import asyncio
 import aiohttp
-from prometheus_client import Counter
 from retrie.trie import Trie
 from . import message_regex
 
 
 phishing_domains_regex = re.compile("$.^")
 url = "http://api.phish.surf:5000/gimme-domains"
-
-
-phishing_catches = Counter(
-    "phishing_catches",
-    "How many times do people phish?",
-    labelnames=["domain"],
-    namespace="renderedmessage"
-)
 
 
 async def phish_loop(bot):
@@ -38,7 +29,3 @@ async def get_phishing_domains() -> re.Pattern:
     for domain in phishing_domains:
         trie.add(domain)
     return re.compile(trie.pattern())
-
-
-async def handle_phish(match: re.Match):
-    phishing_catches.labels(domain=match.group(0)).inc()

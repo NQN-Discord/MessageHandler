@@ -2,14 +2,16 @@ from typing import List
 import re
 from sys import intern
 
-colon_regex = re.compile(
-    r"(?P<persona>^(?!http)[a-zA-Z0-9_-]{1,80}(?=:))|"
+colon_regex = (
+    r"(?P<persona>^(?!http)[a-zA-Z0-9_-]{{1,80}}(?=:))|"
     r"(?P<rendered_emote><a?:[a-zA-Z0-9_]+:\d+>)|"
     r"(?P<unrendered_emote>:(?:[a-zA-Z0-9_]+-)?[a-zA-Z0-9_]+:(?!\d+>))|"
     r"(?P<message_link>\b(?:https?://(?:[a-z]+\.)?)?discord(?:app)?\.com/channels/\d+/\d+/\d+\b(?!>))|"
     r"(?P<sticker>:[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+:)|"
-    r"(?P<masked_url>\[.*\]\(<?(?:https?|button)://[-a-zA-Z0-9:._]{1,256}\.[a-zA-Z0-9]{1,6}\b[-a-zA-Z0-9@:%_+.~#?&/=]*>?\))"
+    r"{phishing}"
+    r"(?P<masked_url>\[.*\]\(<?(?:https?|button)://[-a-zA-Z0-9:._]{{1,256}}\.[a-zA-Z0-9]{{1,6}}\b[-a-zA-Z0-9@:%_+.~#?&/=]*>?\))"
 )
+message_regex = re.compile(colon_regex.format(phishing=""))
 
 
 def get_message_types(content, prefix: str = "!") -> List[List[str]]:
@@ -24,7 +26,7 @@ def get_message_types(content, prefix: str = "!") -> List[List[str]]:
     }:
         return [["prefix", prefix, content[21:].lstrip("> ")]]
     elif ":" in content:
-        return [[intern(m.lastgroup), m.group()] for m in colon_regex.finditer(content)]
+        return [[intern(m.lastgroup), m.group()] for m in message_regex.finditer(content)]
     elif content == "@someone":
         return [["@someone"]]
     return []

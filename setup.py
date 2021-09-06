@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(
@@ -7,6 +7,6 @@ setup(
    description="The set of regular expressions used for filtering out unwanted messages",
    author='Blue',
    url="https://nqn.blue/",
-   packages=["message_helper"],
+   packages=find_packages(),
    install_requires=[]
 )

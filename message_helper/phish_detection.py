@@ -1,6 +1,7 @@
 import re
 import asyncio
 import aiohttp
+import random
 from retrie.trie import Trie
 from . import message_regex
 
@@ -11,6 +12,7 @@ url = "http://192.168.11.39:86/gimme-domains"
 
 async def phish_loop(bot):
     global phishing_domains_regex
+    await asyncio.sleep(random.randrange(1, 10))
     while True:
         phishing_domains_regex = await get_phishing_domains()
         message_regex.message_regex = re.compile(message_regex.colon_regex.format(phishing=f"(?P<phish>{phishing_domains_regex.pattern})|"))
@@ -25,4 +27,4 @@ async def get_phishing_domains() -> re.Pattern:
     trie = Trie()
     for domain in phishing_domains:
         trie.add(domain)
-    return re.compile(f"(?:\b{trie.pattern()}\b)")
+    return re.compile(rf"(?:\b{trie.pattern()}\b)")

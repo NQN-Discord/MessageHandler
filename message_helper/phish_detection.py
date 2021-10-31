@@ -2,7 +2,10 @@ import re
 import asyncio
 import aiohttp
 from retrie.trie import Trie
-from . import message_regex
+try:
+    from . import message_regex
+except ImportError:
+    assert __name__ == "__main__"
 
 
 phishing_domains_regex = re.compile("$.^")
@@ -25,4 +28,63 @@ async def get_phishing_domains() -> re.Pattern:
     trie = Trie()
     for domain in phishing_domains:
         trie.add(domain)
-    return re.compile(rf"(?:\b{trie.pattern()}\b)")
+    return re.compile(rf"(?:://{trie.pattern()}\b)")
+
+
+async def _profile_phish(messages):
+    import timeit, statistics
+    url_regex = re.compile(r"://([-a-zA-Z0-9:._]{1,256}\.[a-zA-Z0-9]{1,6})")
+    url_regex_nogroup = re.compile(r"://[-a-zA-Z0-9:._]{1,256}\.[a-zA-Z0-9]{1,6}")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            domains_set = set(await resp.json())
+    domains_trie = await get_phishing_domains()
+
+    trie_times = timeit.Timer(lambda: _profile_trie(domains_trie, messages)).repeat(number=1, repeat=100)
+    print(f"Trie: min {min(trie_times):.4f}s avg {statistics.mean(trie_times):.4f}s")
+
+    set_times = timeit.Timer(lambda: _profile_set(url_regex, domains_set, messages)).repeat(number=1, repeat=100)
+    print(f"Set: min {min(set_times):.4f}s avg {statistics.mean(set_times):.4f}s")
+
+    set_nogroup_times = timeit.Timer(lambda: _profile_set_nogroup(url_regex_nogroup, domains_set, messages)).repeat(number=1, repeat=100)
+    print(f"Set (no group): min {min(set_nogroup_times):.4f}s avg {statistics.mean(set_nogroup_times):.4f}s")
+
+
+def _profile_trie(domains_trie, messages):
+    total_matches = 0
+    for message in messages:
+        if ":" not in message:
+            continue
+        if domains_trie.search(message):
+            total_matches += 1
+    return total_matches
+
+
+def _profile_set(url_regex, domains_set, messages):
+    total_matches = 0
+    for message in messages:
+        if ":" not in message:
+            continue
+        url_match = url_regex.search(message)
+        if url_match and url_match.group(1) in domains_set:
+            total_matches += 1
+    return total_matches
+
+
+def _profile_set_nogroup(url_regex, domains_set, messages):
+    total_matches = 0
+    for message in messages:
+        if ":" not in message:
+            continue
+        url_match = url_regex.search(message)
+        if url_match and url_match.group()[3:] in domains_set:
+            total_matches += 1
+    return total_matches
+
+
+if __name__ == "__main__":
+    import json as json
+    with open(r"messages.jsonl") as messages_f:
+        messages = [json.loads(l.strip("\n")) for l in messages_f.readlines()]
+
+    asyncio.run(_profile_phish(messages))

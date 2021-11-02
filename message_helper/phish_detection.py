@@ -5,7 +5,7 @@ from retrie.trie import Trie
 try:
     from . import message_regex
 except ImportError:
-    assert __name__ == "__main__"
+    assert __name__ in ("__main__", "phish_detection")
 
 
 phishing_domains_regex = re.compile("$.^")
@@ -83,7 +83,7 @@ def _profile_set_nogroup(url_regex, domains_set, messages):
 
 
 if __name__ == "__main__":
-    import json as json
+    import json
     with open(r"messages.jsonl") as messages_f:
         messages = [json.loads(l.strip("\n")) for l in messages_f.readlines()]
 

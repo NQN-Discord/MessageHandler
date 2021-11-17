@@ -10,7 +10,7 @@ colon_regex = (
     r"(?P<message_link>\b(?:https?://(?:[a-z]+\.)?)?discord(?:app)?\.com/channels/\d+/\d+/\d+\b(?!>))|"
     r"(?P<sticker>:[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+:)|"
     r"{phishing}"
-    r"(?P<masked_url>\[.*\]\(<?(?:https?|button)://[-a-zA-Z0-9:._]{{1,256}}\.[a-zA-Z0-9]{{1,6}}\b[-a-zA-Z0-9@:%_+.~#?&/=]*>?\))"
+    r"(?P<masked_url>\[[^]]*\]\(<?(?:https?|button)://[^\s<]+[^<.,:;\"')\]\s]>?\))"
 )
 message_regex = re.compile(colon_regex.format(phishing=""))
 

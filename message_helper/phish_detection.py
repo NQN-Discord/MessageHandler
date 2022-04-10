@@ -1,6 +1,7 @@
 import re
 import asyncio
 import aiohttp
+from aiohttp.client_exceptions import ContentTypeError
 from retrie.trie import Trie
 try:
     from . import message_regex
@@ -15,8 +16,12 @@ url = "http://192.168.11.39:86/gimme-domains"
 async def phish_loop(bot):
     global phishing_domains_regex
     while True:
-        phishing_domains_regex = await get_phishing_domains()
-        message_regex.message_regex = re.compile(message_regex.colon_regex.format(phishing=f"(?P<phish>{phishing_domains_regex.pattern})|"))
+        try:
+            phishing_domains_regex = await get_phishing_domains()
+        except ContentTypeError:
+            pass
+        else:
+            message_regex.message_regex = re.compile(message_regex.colon_regex.format(phishing=f"(?P<phish>{phishing_domains_regex.pattern})|"))
         await asyncio.sleep(30)
 
 

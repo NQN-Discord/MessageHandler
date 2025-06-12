@@ -10,7 +10,7 @@ except ImportError:
 
 
 phishing_domains_regex = re.compile("$.^")
-url = "http://192.168.11.39:86/"
+url = "http://192.168.178.6:86/"
 
 
 async def phish_loop(bot):

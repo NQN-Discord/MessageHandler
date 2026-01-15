@@ -1,0 +1,9 @@
+[project]
+name = "message_helper"
+version = "0.1"
+description = "The set of regular expressions used for filtering out unwanted messages"
+requires-python = ">=3.14"
+
+dependencies = [
+    "retrie",
+]

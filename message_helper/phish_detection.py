@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 from aiohttp.client_exceptions import ContentTypeError
 from retrie.trie import Trie
+
 try:
     from . import message_regex
 except ImportError:
@@ -21,7 +22,11 @@ async def phish_loop(bot):
         except ContentTypeError:
             pass
         else:
-            message_regex.message_regex = re.compile(message_regex.colon_regex.format(phishing=f"(?P<phish>{phishing_domains_regex.pattern})|"))
+            message_regex.message_regex = re.compile(
+                message_regex.colon_regex.format(
+                    phishing=f"(?P<phish>{phishing_domains_regex.pattern})|"
+                )
+            )
         await asyncio.sleep(30)
 
 
@@ -38,6 +43,7 @@ async def get_phishing_domains() -> re.Pattern:
 
 async def _profile_phish(messages):
     import timeit, statistics
+
     url_regex = re.compile(r"://([-a-zA-Z0-9:._]{1,256}\.[a-zA-Z0-9]{1,6})")
     url_regex_nogroup = re.compile(r"://[-a-zA-Z0-9:._]{1,256}\.[a-zA-Z0-9]{1,6}")
     async with aiohttp.ClientSession() as session:
@@ -45,14 +51,22 @@ async def _profile_phish(messages):
             domains_set = set(await resp.json())
     domains_trie = await get_phishing_domains()
 
-    trie_times = timeit.Timer(lambda: _profile_trie(domains_trie, messages)).repeat(number=1, repeat=100)
+    trie_times = timeit.Timer(lambda: _profile_trie(domains_trie, messages)).repeat(
+        number=1, repeat=100
+    )
     print(f"Trie: min {min(trie_times):.4f}s avg {statistics.mean(trie_times):.4f}s")
 
-    set_times = timeit.Timer(lambda: _profile_set(url_regex, domains_set, messages)).repeat(number=1, repeat=100)
+    set_times = timeit.Timer(
+        lambda: _profile_set(url_regex, domains_set, messages)
+    ).repeat(number=1, repeat=100)
     print(f"Set: min {min(set_times):.4f}s avg {statistics.mean(set_times):.4f}s")
 
-    set_nogroup_times = timeit.Timer(lambda: _profile_set_nogroup(url_regex_nogroup, domains_set, messages)).repeat(number=1, repeat=100)
-    print(f"Set (no group): min {min(set_nogroup_times):.4f}s avg {statistics.mean(set_nogroup_times):.4f}s")
+    set_nogroup_times = timeit.Timer(
+        lambda: _profile_set_nogroup(url_regex_nogroup, domains_set, messages)
+    ).repeat(number=1, repeat=100)
+    print(
+        f"Set (no group): min {min(set_nogroup_times):.4f}s avg {statistics.mean(set_nogroup_times):.4f}s"
+    )
 
 
 def _profile_trie(domains_trie, messages):
@@ -89,6 +103,7 @@ def _profile_set_nogroup(url_regex, domains_set, messages):
 
 if __name__ == "__main__":
     import json
+
     with open(r"messages.jsonl") as messages_f:
         messages = [json.loads(l.strip("\n")) for l in messages_f.readlines()]
 
